@@ -1,0 +1,20 @@
+server:
+  port: 8761
+eureka:
+  instance:
+    hostname: localhost
+    non-secure-port-enabled: true
+    non-secure-port: 8761
+    preferIpAddress: false
+  server:
+    maxThreadsForPeerReplication: 0
+    waitTimeInMsWhenSyncEmpty: 5 # Sets the initial time to wait before the server takes requests
+  client:
+    register-with-eureka: false #Tells the Config Server to not register with the Eureka service ...
+    fetch-registry: false #... and to not cache registry information locally
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+management:
+  endpoint:
+    health:
+      show-details: always
