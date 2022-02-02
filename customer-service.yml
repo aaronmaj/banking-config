@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8082
   error:
     include-message: always
   forward-headers-strategy: framework
@@ -10,14 +10,15 @@ logging:
     com.banking: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
 
-# API documentation
 api:
   common:
     version: 1.0.0
-    title: Account Service API
-    description: Account service API for operations pertaining to bank accounts
-    termsOfService: N/A
+    title: Customer Service API
+    description: Customer service API for operations pertaining to bank customers
+    termsOfService: https://smartbear.com/terms-of-use/
     license: MIT Licence
     licenseUrl: https://mit-license.org/
     externalDocDesc: N/A
@@ -29,78 +30,86 @@ api:
   responseCodes:
     ok.description: OK
     badRequest.description: Bad Request, invalid format of the request. See response message for more information
-    notFound.description: Not found, the account for specified account number does not exist
+    notFound.description: Not found, the specified customerid does not exist
     unprocessableEntity.description: Unprocessable entity, input parameters caused the processing to fail. See response message for more information
 
-  accounts:
-    find-all:
-      description: Returns the list of all accounts recorded by the system
+  customers:
+    get-all:
+      description: Returns the list of all customers recorded by the system
       notes: |
         # Normal response
-        If account entities are found the method will return information regarding each account:
-        1. Account basic information
-        1. Account type (CHECKING,SAVINGS,LOAN,CERTIFICATE_OF_DEPOSIT)
-        1. Account category (INDIVIDUAL, JOINT, INDIVIS)
-        1. Account status (OPEN,ACTIVE,DORMANT,INACTIVE, BLOCKED,CLOSED)
-        1. Brach code where the account was created
-        1. Customer id associated with the account
-        1. Currency (BIF,USD,EUR,GBP)
+        If customer entities are found the method will return information regarding each customer:
+        1. Customer basic information
+        1. Customer type (Individual, Corporate, etc)
+        1. Customer gender(Male,Female)
+        1. Customer ID type(National ID, Passport, Service Documents )
         # Expected partial and error responses
-        1. If no account information is found, an empty list will be returned
+        1. If no customer information is found, an empty list will be returned
 
-    get-account-by-account-number:
-      description: Returns an account information for the specified account number
+    get-customer-by-id:
+      description: Returns a customer information for the specified customer id
       notes: |
         # Normal response
-        If the requested account  is found the method will return information regarding:
-        1. Account basic information
-        1. Account type (CHECKING,SAVINGS,LOAN,CERTIFICATE_OF_DEPOSIT)
-        1. Account category (INDIVIDUAL, JOINT, INDIVIS)
-        1. Account status (OPEN,ACTIVE,DORMANT,INACTIVE, BLOCKED,CLOSED)
-        1. Brach code where the account was created
-        1. Customer id associated with the account
-        1. Currency (BIF,USD,EUR,GBP)
+        If the requested customer id is found the method will return information regarding:
+        1. Customer basic information
+        1. Customer type (Individual, Corporate, etc)
+        1. Customer gender(Male,Female)
+        1. Customer ID type(National ID, Passport, Service Documents )
         # Expected partial and error responses
-        1. If no account is found for the given account number, a **404 - Not Found** error will be returned
+        1. If no customer information is found, a **404 - Not Found** error will be returned
         1. In case of missing information (non mandatory) during registration, a partial response will be returned
-    create-account:
-      description: Creates an account object
+    create-customer:
+      description: Creates a customer object
       notes: |
         # Normal response
-        The account information posted to the API will be stored in a dedicated account entity.
+        The customer information posted to the API will be stored in a dedicated customer entity.
         # Expected error responses
-        1. If an account with the same account as specified in the posted information already exists,
+        1. If a customer with the same customerId as specified in the posted information already exists,
            an **422 - Unprocessable Entity** error with a "duplicate key" error message will be returned
-    update-account:
-      description: Update an account for a given account number
+    update-customer:
+      description: Update a customer for a given customerId
       notes: |
         # Normal response
-        The account information related to the specified account number will updated.
+        The entity for customer information related to the specified customerId will updated.
         # Expected error responses
-        If no account is found, a **404 - Not Found** error will be returned
+        If no customer information is found, a **404 - Not Found** error will be returned
 
-    get-customer-details:
-      description: Displays the personal details for the account holder
+    upload-image:
+      description: Uploads an image(photo) for a given customerId
       notes: |
         # Normal response
-        The Personal Details for account holder.
+        The entity for customer information related to the specified customerId will updated with the image(photo).
         # Expected error responses
-        If no account is found, a **404 - Not Found** error will be returned
+        If no customer information is found, a **404 - Not Found** error will be returned
 
-    delete-account:
-      description: Deletes an account for a given account number
+    upload-contract:
+      description: Uploads contract document for a given customerId
       notes: |
         # Normal response
-        The account related to the specified account number will be deleted.
+        The entity for customer information related to the specified customerId will updated with the image(photo).
+        # Expected error responses
+        If no customer information is found, a **404 - Not Found** error will be returned
+    upload-cert:
+      description: Uploads a customer document(ID, Passport) for a given customerId
+      notes: |
+        # Normal response
+        The entity for customer information related to the specified customerId will updated with the image(photo).
+        # Expected error responses
+        If no customer information is found, a **404 - Not Found** error will be returned
+
+    delete-customer:
+      description: Deletes a customer for a given customer id
+      notes: |
+        # Normal response
+        The entity for customer information related to the specified customerId will be deleted.
         The implementation of the delete method is idempotent, i.e. it can be called several times with the same response.
-        This means that a delete request of a non-existing product will return **200 Ok**.
-
+        This means that a delete request of a non-existing product will return **204 No Content**.
 
 
 springdoc:
   swagger-ui.path: /openapi/swagger-ui.html
   api-docs.path: /openapi/v3/api-docs
-  packagesToScan: com.banking.account
+  packagesToScan: com.banking.customer
   pathsToMatch: /**
   cache.disabled: true
 
@@ -111,14 +120,15 @@ spring:
       naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
 
     database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     defer-datasource-initialization: true
     show-sql: true
     properties:
       hibernate:
+        show_sql: true
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        se_sql_comments: true
-
+        use_sql_comments: true
   datasource:
     url: jdbc:postgresql://localhost:5432/banking_db
     username: dbtest
@@ -127,8 +137,6 @@ spring:
     testWhileIdle: true
     validationQuery: SELECT 1
     continue-on-error: false
-    hikari.initializationFailTimeout: 60000
-
   database:
     driverClassName: org.postgresql.Driver
   cloud:
@@ -215,27 +223,18 @@ keycloak.resource: banking-service #client ID
 keycloak.credentials.secret: b5460e47-e2b0-4791-b927-25be79148b86 #client secret
 keycloak.use-resource-role-mappings: true
 keycloak.bearer-only: true
-#keycloak.truststore=${server.ssl.trust-store}
-#keycloak.truststore-password=${server.ssl.trust-store-password}
 
-
-#security.oauth2.resource.userInfoUri: http://authenticationservice:8082/user
-
-spring.cloud.stream.bindings.inboundOrgChanges.destination: custChangeTopic
-spring.cloud.stream.bindings.inboundOrgChanges.content-type: application/json
-spring.cloud.stream.bindings.inboundOrgChanges.group: accountGroup
-spring.cloud.stream.kafka.binder.zkNodes: kafka
-spring.cloud.stream.kafka.binder.brokers: kafka
+spring.cloud.stream.bindings.output.destination: custChangeTopic
+spring.cloud.stream.bindings.output.content-type: application/json
+spring.cloud.stream.kafka.binder.zkNodes: localhost
+spring.cloud.stream.kafka.binder.brokers: localhost
 
 spring.zipkin.baseUrl: http://localhost:9411
-spring.sleuth.sampler.percentage: 1
-redis:
-  server: redis
-  port: 6379
+spring.sleuth.sampler.probability: 1.0
 ---
 spring.config.activate.on-profile: docker
 
-server.port: 8081
+server.port: 8082
 keycloak:
   auth-server-url: http://keycloak:8180/auth
 spring.zipkin.baseUrl: http://zipkin:9411
